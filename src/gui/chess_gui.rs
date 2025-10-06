@@ -8,7 +8,13 @@ pub struct App {
 
 impl App {
     fn load_image(ctx: &egui::Context, name: &'static str, bytes: &[u8]) -> egui::TextureHandle {
-        let image = image::load_from_memory(bytes).unwrap().to_rgba8();
+        let image = match image::load_from_memory(bytes) {
+            Ok(img) => img.to_rgba8(),
+            Err(err) => {
+                eprintln!("Failed to load image: {}", err);
+                return ctx.load_texture(name, ColorImage::example(), egui::TextureOptions::default());
+            }
+        };
         let size = [image.width() as usize, image.height() as usize];
         let color_image = ColorImage::from_rgba_unmultiplied(size, image.as_raw());
         ctx.load_texture(name, color_image, egui::TextureOptions::default())
@@ -29,7 +35,7 @@ impl eframe::App for App {
         if self.textures.is_empty() {
             //add image to images here
             let images = [
-                ("chess_pieces", include_bytes!("../../textures/chess_pieces.png") as &[u8]),
+                ("chessboard", include_bytes!("../../textures/chessboard.png") as &[u8]),
             ];
 
             for (name, bytes) in images {
@@ -41,7 +47,7 @@ impl eframe::App for App {
         egui::CentralPanel::default().show(ctx, |ui| {
             //render images here
             ui.horizontal(|ui| {
-                ui.image(&self.textures["chess_pieces"]);
+                ui.image(&self.textures["chessboard"]);
             });
         });
     }
